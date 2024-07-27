@@ -1,30 +1,7 @@
 import streamlit as st
 import time
-from flask import Flask, request
-import threading
+import requests
 import plotly.graph_objects as go
-
-# Flask app to handle POST requests from ESP32
-app = Flask(__name__)
-
-# Global variables to store temperature and humidity
-temperature = 0.0
-humidity = 0.0
-
-@app.route('/data', methods=['POST'])
-def update_data():
-    global temperature, humidity
-    data = request.get_json()
-    temperature = data['temperature']
-    humidity = data['humidity']
-    return "Data received", 200
-
-# Start Flask app in a separate thread
-def run_flask():
-    app.run(host='0.0.0.0', port=8000)
-
-thread = threading.Thread(target=run_flask)
-thread.start()
 
 # Streamlit app
 st.title("ESP32 DHT Server!")
@@ -49,8 +26,20 @@ def create_pie_chart(temp, hum):
     fig.update_layout(title="Temperature and Humidity Pie Chart")
     return fig
 
+# Function to fetch data from Flask API
+def fetch_data():
+    try:
+        response = requests.get('http://localhost:8000/data')
+        if response.status_code == 200:
+            data = response.json()
+            return data['temperature'], data['humidity']
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
+    return 0.0, 0.0
+
 # Continuously update the data displayed in the Streamlit app
 while True:
+    temperature, humidity = fetch_data()
     bar_chart_placeholder.plotly_chart(create_bar_chart(temperature, humidity))
     pie_chart_placeholder.plotly_chart(create_pie_chart(temperature, humidity))
     
