@@ -1,19 +1,18 @@
-# 🎈 Blank app template
+import dht
+from machine import Pin
+import time
 
-A simple Streamlit app template for you to modify!
+# Set up DHT11 sensor on GPIO4
+dht_sensor = dht.DHT11(Pin(4))
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
-
-### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
-   ```
-
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+while True:
+    try:
+        dht_sensor.measure()
+        temp = dht_sensor.temperature()
+        humidity = dht_sensor.humidity()
+        print('Temperature: %3.1f C' %temp)
+        print('Humidity: %3.1f %%' %humidity)
+    except OSError as e:
+        print('Failed to read sensor.')
+    
+    time.sleep(2)
